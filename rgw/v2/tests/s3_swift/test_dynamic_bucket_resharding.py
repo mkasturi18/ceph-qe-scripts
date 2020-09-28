@@ -94,6 +94,17 @@ def test_exec(config):
     log.info('no of buckets to create: %s' % config.bucket_count)
     bucket_name = utils.gen_bucket_name_from_userid(user_info['user_id'], rand_no=1)
     bucket = resuables.create_bucket(bucket_name, rgw_conn, user_info)
+    # verify the num_shards. The default bucket-index shards increased to 10. Ref: https://bugzilla.redhat.com/show_bug.cgi?id=1813349
+    ceph_version=utils.get_ceph_version()
+    if ceph_version == 'nautilus':
+        bucket_stats = utils.exec_shell_cmd("radosgw-admin bucket stats --bucket=%s" % bucket_name)
+        bucket_stats_json = json.loads(bucket_stats)
+        bkt_num_shards = bucket_stats_json['num_shards']
+        default_num_shards = 11
+        if bkt_num_shards == default_num_shards:
+            log.info('Verified the default num_shards[11]')
+        else:
+            raise TestExecError('The num_shards is not equal to 11')
     print(resuables.enable_versioning(bucket, rgw_conn, user_info, write_bucket_io_info))
     upload_objects(user_info, bucket, config)
 
@@ -109,7 +120,7 @@ def test_exec(config):
         if cmd_exec is False:
             raise TestExecError("manual resharding command execution failed")
 
-    sleep_time = 600
+    #sleep_time = 600
     log.info(f'verification starts after waiting for {sleep_time} seconds')
     time.sleep(sleep_time)
     op = utils.exec_shell_cmd("radosgw-admin metadata get bucket:%s" % bucket.name)

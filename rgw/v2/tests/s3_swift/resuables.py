@@ -29,7 +29,7 @@ def create_bucket(bucket_name, rgw, user_info):
                                  'args': None,
                                  'extra_info': {'access_key': user_info['access_key']}})
     if created is False:
-        raise TestExecError("Resource execution failed: bucket creation faield")
+        raise TestExecError("Resource execution failed: bucket creation failed")
     if created is not None:
         response = HttpResponseParser(created)
         if response.status_code == 200:
