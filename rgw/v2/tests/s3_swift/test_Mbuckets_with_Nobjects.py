@@ -54,7 +54,7 @@ encryption_key = hashlib.md5(password).hexdigest()
 
 
 def test_exec(config):
-
+#    import pdb; pdb.set_trace()
     io_info_initialize = IOInfoInitialize()
     basic_io_structure = BasicIOInfoStructure()
     io_info_initialize.initialize(basic_io_structure.initial())

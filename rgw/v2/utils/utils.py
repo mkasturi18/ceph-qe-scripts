@@ -133,17 +133,31 @@ class RGWService(object):
         pass
 
     def restart(self):
-        executed = exec_shell_cmd('sudo systemctl restart ceph-radosgw.target')
-        return executed
+        ceph_version_id, ceph_version_name = utils.get_ceph_version()
+        if ceph_version_name == 'nautilus':
+            executed = exec_shell_cmd('sudo systemctl restart ceph-radosgw.target')
+            return executed
+        if ceph_version_name == 'pacific':
+            executed = exec_shell_cmd('sudo ceph orch restart rgw')
+            return executed
 
     def stop(self):
-        executed = exec_shell_cmd('sudo systemctl stop ceph-radosgw.target')
-        return executed
+        ceph_version_id, ceph_version_name = utils.get_ceph_version()
+        if ceph_version_name == 'nautilus':
+            executed = exec_shell_cmd('sudo systemctl stop ceph-radosgw.target')
+            return executed
+        if ceph_version_name == 'pacific':
+            executed = exec_shell_cmd('sudo ceph orch stop rgw')
+            return executed
 
     def start(self):
-        executed = exec_shell_cmd('sudo systemctl stop ceph-radosgw.target')
-        return executed
-
+        ceph_version_id, ceph_version_name = utils.get_ceph_version()
+        if ceph_version_name == 'nautilus':
+            executed = exec_shell_cmd('sudo systemctl start ceph-radosgw.target')
+            return executed
+        if ceph_version_name == 'pacific':
+            executed = exec_shell_cmd('sudo ceph orch start rgw')
+            return executed
 
 def get_radosgw_port_no():
     op = exec_shell_cmd('sudo netstat -nltp | grep radosgw')

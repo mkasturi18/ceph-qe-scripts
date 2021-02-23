@@ -16,24 +16,27 @@ log = logging.getLogger()
 
 
 class RGWSection(object):
-    # rgw section in ceph.conf
-    def __init__(self):
-        self._hostname, self._ip = utils.get_hostname_ip()
-        self._ssl_port = 443
-        self._non_ssl_port = utils.get_radosgw_port_no()
-        self._ceph_conf = CephConfOp()
-        self._rgw_service = RGWService()
+    ceph_version_id, ceph_version_name = utils.get_ceph_version()
+    if ceph_version_name == 'nautilus':
 
-        # _sections_to_check = ['client.rgw.' + self._hostname,
-        #                       'client.rgw.' + self._ip]
-        # log.info('checking for existence of sections: {}'.format(_sections_to_check))
-        # _sections = [section for section in _sections_to_check if self._ceph_conf.check_if_section_exists(section)]
+        # rgw section in ceph.conf
+        def __init__(self):
+            self._hostname, self._ip = utils.get_hostname_ip()
+            self._ssl_port = 443
+            self._non_ssl_port = utils.get_radosgw_port_no()
+            self._ceph_conf = CephConfOp()
+            self._rgw_service = RGWService()
+
+            # _sections_to_check = ['client.rgw.' + self._hostname,
+            #                       'client.rgw.' + self._ip]
+            # log.info('checking for existence of sections: {}'.format(_sections_to_check))
+            # _sections = [section for section in _sections_to_check if self._ceph_conf.check_if_section_exists(section)]
         #
         # log.info('got section(s): {}'.format(_sections))
         # if not any(_sections):
         #     raise RGWBaseException('No RGW section in ceph.conf')
         # self.section = _sections[0]
-
+        print("Iam in nautilus RGWSEctions")
         sections_in_ceph_conf = self._ceph_conf.cfg.sections()
         log.info('got sections from ceph_conf: {}'.format(sections_in_ceph_conf))
         rgw_section = list(filter(lambda section: 'rgw' in section, sections_in_ceph_conf))
@@ -41,7 +44,9 @@ class RGWSection(object):
             raise RGWBaseException('No RGW section in ceph.conf')
         self.section = rgw_section[0]
         log.info('using section: {}'.format(self.section))
-
+    if ceph_version_name == 'pacific':
+        sections_in_ceph_config = utils.exec_shell_cmd('sudo ceph config dump')
+        print("check: ",sections_in_ceph_config[10])
 
 class RGWSectionOptions(RGWSection):
     def __init__(self):
@@ -52,16 +57,20 @@ class RGWSectionOptions(RGWSection):
 
 
 class Frontend(RGWSectionOptions):
-    def __init__(self):
-        RGWSectionOptions.__init__(self)
+    ceph_version_id, ceph_version_name = utils.get_ceph_version()
+    if ceph_version_name == 'nautilus':
+        def __init__(self):
+            RGWSectionOptions.__init__(self)
 
-        log.info('checking current rgw frontend')
-        self.curr_frontend = 'civetweb' if 'civetweb' in self.rgw_section_options.get('rgw frontends') else 'beast'
-        log.info('curr_frontend is set to: {}'.format(self.curr_frontend))
+            log.info('checking current rgw frontend')
+            self.curr_frontend = 'civetweb' if 'civetweb' in self.rgw_section_options.get('rgw frontends') else 'beast'
+            log.info('curr_frontend is set to: {}'.format(self.curr_frontend))
 
-        log.info('checking if ssl is configured in ceph.conf')
-        self.curr_ssl = True if 'ssl' in self.rgw_section_options.get('rgw frontends') else False
-        log.info('curr_ssl_status from ceph conf is : {}'.format(self.curr_ssl))
+            log.info('checking if ssl is configured in ceph.conf')
+            self.curr_ssl = True if 'ssl' in self.rgw_section_options.get('rgw frontends') else False
+            log.info('curr_ssl_status from ceph conf is : {}'.format(self.curr_ssl))
+    if ceph_version_name == 'pacific':
+        print ("rgw frontend is beast")
 
     @decorators.check_pem
     def set_frontend(self, frontend, **kwargs):

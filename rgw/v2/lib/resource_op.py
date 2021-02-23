@@ -189,7 +189,7 @@ class Config(object):
         self.ssl = self.doc['config'].get('ssl',)
         self.frontend = self.doc['config'].get('frontend')
         self.io_op_config = self.doc.get('config').get('io_op_config')
-        frontend_config = Frontend()
+#        frontend_config = Frontend()
 
         # if frontend is set in config yaml
         if self.frontend:
@@ -213,4 +213,4 @@ class Config(object):
             # if ssl is not set in config yaml, check if ssl_enabled and configured by default,
             # set sel.ssl = True or False based on ceph conf
             log.info('ssl is not set in config.yaml')
-            self.ssl = frontend_config.curr_ssl
+#            self.ssl = frontend_config.curr_ssl

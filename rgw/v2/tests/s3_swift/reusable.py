@@ -33,7 +33,9 @@ def create_bucket(bucket_name, rgw, user_info):
     created = s3lib.resource_op({'obj': bucket,
                                  'resource': 'create',
                                  'args': None,
-                                 'extra_info': {'access_key': user_info['access_key']}})
+                                 'extra_info': {'access_key': user_info['access_key']},
+                                  CreateBucketConfiguration:{
+                                  'LocationConstraint': 'india'}})
     if created is False:
         raise TestExecError("Resource execution failed: bucket creation failed")
     if created is not None:
