@@ -3,7 +3,7 @@ import os, sys
 sys.path.append(os.path.abspath(os.path.join(__file__, "../../../")))
 from v2.lib.admin import UserMgmt
 # import v2.lib.frontend_configure as frontend_configure
-from v2.lib.frontend_configure import Frontend
+from v2.lib.frontend_configure import Frontend, Frontend_CephAdm
 from v2.lib.exceptions import ConfigError
 import names
 import random
