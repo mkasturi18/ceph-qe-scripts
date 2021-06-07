@@ -658,3 +658,38 @@ def time_to_list_via_boto(bucket_name,rgw):
     time_taken=( timeit.timeit(lambda: bucket.objects.all(),globals=globals()))
     return time_taken
 
+def sync_status():
+    """
+    verify multisite sync status
+    """
+    log.info('check sync status')
+    check_sync_status = utils.exec_shell_cmd('sudo radosgw-admin sync status')
+    
+    #Check for 'failed' or 'ERROR' in sync status. 
+    if "failed|ERROR" in check_sync_status:
+        raise TestExecError("radosgw-admin sync status failed")
+    else:
+        log.info('No errors or failures in sync status')
+    
+    #check the sync status, if sync is in progress retry 5 times with 30 secs of sleep between each retry
+    if "behind" in check_sync_status:
+        log.info('sync is in progress')
+        log.info('sleep of 30 secs for sync to complete')
+        for retry in range(5):
+            time.sleep(30)
+            check_sync_status = utils.exec_shell_cmd('sudo radosgw-admin sync status')
+            if "behind" in check_sync_status:
+                log.info('Sync is still in progress. sleep for 30 secs and retry')
+            else:
+                log.info('sync completed')
+                break
+
+        if retry > 5 and "behind" in check_sync_status:
+            raise TestExecError("sync is still in progress. with 5 retries and sleep of 30 secs between each retry")
+   
+    # check status for complete sync
+    if "data is caught up with source" in check_sync_status:
+        log.info('sync status complete')
+    else:
+        raise TestExecError("sync is either in progress or stuck")
+
