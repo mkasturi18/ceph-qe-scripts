@@ -112,3 +112,13 @@ class SyncFailedError(Exception):
     ):
         super().__init__(message)
         self.message = message
+
+class EventRecordDataError(Exception):
+    # exception raised when data in event record is missing or incorrect
+    def __init__(
+        self,
+        message=None,
+    ):
+        super().__init__(message)
+        self.message = message
+

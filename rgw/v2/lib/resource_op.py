@@ -216,6 +216,9 @@ class Config(object):
         self.ceph_conf = self.doc["config"].get("ceph_conf")
         self.gc_verification = self.doc["config"].get("gc_verification", False)
         self.rgw_gc_obj_min_wait = self.doc["config"].get("rgw_gc_obj_min_wait", False)
+        self.persistent_flag = self.test_ops.get("persistent_flag", False)
+        self.copy_object = self.test_ops.get("copy_object", False)
+        self.get_topic_info = self.test_ops.get("get_topic_info",False)
         self.ssl = self.doc["config"].get(
             "ssl",
         )
