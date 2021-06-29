@@ -21,6 +21,7 @@ from v2.lib.s3.write_io_info import (
 )
 from v2.lib.sync_status import sync_status
 from v2.utils.utils import HttpResponseParser, RGWService
+from urllib import parse as urlparse
 
 io_info_initialize = IOInfoInitialize()
 basic_io_structure = BasicIOInfoStructure()
@@ -907,3 +908,63 @@ def check_sync_status(retry=None, delay=None):
     is_multisite = utils.is_cluster_multisite()
     if is_multisite:
         sync_status()
+
+def create_topic(sns_client,endpoint,ack_type,persistent_flag):
+    """
+    to create topic with specified endpoint , ack_level 
+    return: topic ARN
+    """
+    if persistent_flag is True:
+        topic_name = 'cephci-kafka-'+ack_type+'-persistent'
+        endpoint_args = f'push-endpoint=kafka://10.8.130.218&verify-ssl=False&kafka-ack-level='+str({ack_type})+'&persistent=true'
+        attributes = {nvp[0] : nvp[1] for nvp in urlparse.parse_qsl(endpoint_args, keep_blank_values=True)}
+        get_topic = sns_client.create_topic(Name=topic_name, Attributes=attributes)
+        topic_arn = get_topic['TopicArn']
+        
+    else:
+        topic_name = 'kafka-'+ack_type
+        endpoint_args = f'push-endpoint=kafka://10.8.130.218&verify-ssl=False&kafka-ack-level='+str({ack_type})
+        attributes = {nvp[0] : nvp[1] for nvp in urlparse.parse_qsl(endpoint_args, keep_blank_values=True)}
+        get_topic = sns_client.create_topic(Name=topic_name, Attributes=attributes)
+        topic_arn = get_topic['TopicArn']
+    
+    log.info(f"topic_ARN is : {topic_arn}")     
+    return topic_arn
+
+def get_topic(client,topic_arn):
+    """
+    get the topic with spedified topic_arn
+    """
+    get_topic_info = client.get_topic_attributes(TopicArn=topic_arn)
+    get_topic_info_json = json.dumps(get_topic_info,indent=2)
+    if get_topic_info is False:
+        raise TestExecError("topic creation failed")
+    else:
+        log.info(f"get topic attributes: {get_topic_info_json}")
+
+
+def put_bucket_notification(rgw_s3_client,bucketname,notification_name,topic_arn,event):
+    """
+    put bucket notification on bucket for specified events with given endpoint and topic 
+    """
+    put_bkt_notification = rgw_s3_client.put_bucket_notification_configuration(
+                        Bucket=bucketname,
+                        NotificationConfiguration={
+                            'TopicConfigurations': [
+                            {        
+                                'Id': notification_name,
+                                'TopicArn': topic_arn,
+                                'Events': ['s3:ObjectCreated:*', 's3:ObjectRemoved:*']
+                            }]})
+    if put_bkt_notification is False:
+        raise TestExecError("put bucket notification failed")
+
+def get_bucket_notification(rgw_s3_client,bucketname):
+    """
+    get bucket notification for a given bucket
+    """
+    get_bkt_notification = rgw_s3_client.get_bucket_notification_configuration(Bucket=bucketname)
+    if get_bkt_notification is False:
+        raise TestExecError(f"failed to get bucket notification for bucket : {bucketname}")
+    get_bucket_notification_json = json.dumps(get_bkt_notification,indent=2)
+    log.info(f"bucket notification for bucket: {bucketname} is {get_bucket_notification_json}")
