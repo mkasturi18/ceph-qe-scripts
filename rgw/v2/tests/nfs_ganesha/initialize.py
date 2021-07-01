@@ -24,7 +24,7 @@ class RGWUserConfigOps(object):
         self.rgw_user_info = None
 
     def read_config(self):
-        yaml_file = os.path.abspath(self.fname)
+        yaml_file = "/root/nfs-ganesha/ceph-qe-scripts/rgw/v2/tests/nfs_ganesha/config/rgw_user.yaml" #os.path.abspath(self.fname)
         with open(yaml_file, "r") as f:
             self.rgw_user_info = yaml.safe_load(f)
         log.info("got configuration: %s" % self.rgw_user_info)

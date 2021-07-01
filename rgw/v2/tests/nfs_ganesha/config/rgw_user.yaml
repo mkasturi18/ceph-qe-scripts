@@ -1,9 +1,9 @@
-user_id:
-access_key:
-secret_key:
-rgw_hostname:
+user_id: ceph-dashboard
+access_key: dashboard
+secret_key: dashboard@12
+rgw_hostname: ceph-auth1-1625132113630-node5-rgw
 ganesha_config_exists: true # set true to create ganesha config based on the above input or set false not to create any config.
-already_mounted:  # set true if nfs_ganesha is already mounted or false if not.
-nfs_version:
-nfs_mnt_point:  # provide full path
-Pseudo:
+already_mounted: true # set true if nfs_ganesha is already mounted or false if not.
+nfs_version: 4
+nfs_mnt_point: /home/cephuser/rgw-nfs/ # provide full path
+Pseudo: /cephobject
