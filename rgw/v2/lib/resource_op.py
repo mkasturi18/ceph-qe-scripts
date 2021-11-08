@@ -227,6 +227,9 @@ class Config(object):
         self.io_op_config = self.doc.get("config").get("io_op_config")
         self.radoslist_all = self.test_ops.get("radoslist_all", False)
         self.change_datalog_backing = self.test_ops.get("change_datalog_backing", False)
+        self.persistent_flag = self.test_ops.get("persistent_flag", False)
+        self.copy_object = self.test_ops.get("copy_object", False)
+        self.get_topic_info = self.test_ops.get("get_topic_info", False)
         ceph_version_id, ceph_version_name = utils.get_ceph_version()
         # todo: improve Frontend class
         if ceph_version_name in ["luminous", "nautilus"]:
