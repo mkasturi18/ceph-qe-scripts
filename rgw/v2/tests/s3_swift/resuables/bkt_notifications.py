@@ -14,51 +14,96 @@ log = logging.getLogger()
 
 def start_kafka_broker_consumer(topic_name, event_record_path, ceph_version):
     """
-    start zookeeper, kafka broker and listen to consumer
+    start kafka consumer
     topic_name: name of the topic to listen to
     event_record_path: path to store the event records
     """
     # check if the file at event_record_path already exists
+#    path = 'cd kafka*/ && pwd'
+##    subprocess.run('cd',path)
+#    cmd = utils.exec_shell_cmd(path)
+
     if os.path.isfile(event_record_path):
         log.info(
             "stale event record file exists, deleting it before creating a new file."
         )
         cmd = f"rm -f {event_record_path}"
-        os.system(cmd)
+        #os.system(cmd)
+        t = utils.exec_shell_cmd(cmd) #subprocess.run(cmd ) #,capture_output=True) #utils.exec_shell_cmd(cmd)
+        print("path exists :",t)
 
-    # start zookeeper
-    start_zookeepeer_kafka = os.system(
-        "~/kafka/kafka*/bin/zookeeper-server-start.sh ~/kafka/kafka*/config/zookeeper.properties > /dev/null 2>&1 &"
-    )
-    log.info("zookeeper started \n")
-
+    path = '/home/cephuser/kafka*/'
+#    cmd = utils.exec_shell_cmd(path)
     # start kafka broker
-    start_kafka_broker = os.system(
-        "~/kafka/kafka*/bin/kafka-server-start.sh ~/kafka/kafka*/config/server.properties > /dev/null 2>&1 &"
-    )
-    log.info("kafka broker started \n")
-    log.info("sleep for 10 seconds and start the consumer")
-    time.sleep(10)
+#    start_kafka_broker(path)
 
     # start kafka consumer
     if "nautilus" in ceph_version:
-        cmd = f"~/kafka/kafka*/bin/kafka-console-consumer.sh --bootstrap-server kafka://localhost:9092 --from-beginning --topic {topic_name} --timeout-ms 20000 >> {event_record_path}"
+        cmd = f"{path}/bin/kafka-console-consumer.sh --bootstrap-server kafka://localhost:9092 --from-beginning --topic {topic_name} --timeout-ms 20000 >> {event_record_path}"
     else:
-        cmd = f"~/kafka/kafka*/bin/kafka-console-consumer.sh --bootstrap-server kafka://localhost:9092 --from-beginning --topic {topic_name} --zookeeper localhost:2181 --timeout-ms 20000 >> {event_record_path}"
-    start_consumer_kafka = os.system(cmd)
+        cmd = f"{path}/bin/kafka-console-consumer.sh --bootstrap-server kafka://localhost:9092 --from-beginning --topic {topic_name} --zookeeper localhost:2181 --timeout-ms 20000 >> {event_record_path}"
+    start_consumer_kafka = utils.exec_shell_cmd(cmd) #subprocess.run(cmd) #,capture_output=True) #utils.exec_shell_cmd(cmd) #os.system(cmd)
+    
+    #stop kafka broker
+#    stop_kafka_broker(path)
+#    # retry starting zookeeper and broker
+#    if start_consumer_kafka is False:
+#        log.info("sleep of 10 seconds and retry starting kafka broker again")
+#        start_kafka_broker()
+#        start_consumer_kafka = subprocess.run(cmd) #,capture_output=True) #utils.exec_shell_cmd(cmd) #os.system(cmd)
 
+def start_kafka_broker(path):
+    """
+    start zookeeper and kafka broker
+    """
+    #start zookeeper and kafka broker
+#    log.info("stop any zookeeper or kafka process running from previous run")
+#    stop_kafka_broker(path)
+#    path = '/home/cephuser/kafka*/'
+    # start zookeeper
+    cmd = f"{path}/bin/zookeeper-server-start.sh -daemon {path}/config/zookeeper.properties" #&& bin/kafka-server-start.sh -daemon config/server.properties"
+    start_zookeepeer_kafka = utils.exec_shell_cmd(cmd)
+    cmd = f"{path}bin/kafka-server-start.sh -daemon {path}config/server.properties"
+    start_kafka =  utils.exec_shell_cmd(cmd) 
+        #subprocess.run(cmd) #,capture_output=True) # utils.exec_shell_cmd( #os.system(
+#        "./kafka*/bin/zookeeper-server-start.sh -daemon ./kafka*/config/zookeeper.properties > /dev/null 2>&1 &"
+#    )
+    log.info("zookeeper and kafka broker started \n")
 
-def stop_kafka_broker():
+#    # start kafka broker
+#    cmd = f"{path}/bin/kafka-server-start.sh -daemon {path}/config/server.properties > /dev/null 2>&1 &"
+#    start_kafka_broker = subprocess.run(cmd) #,capture_output=True)#utils.exec_shell_cmd( #os.system(cmd)
+#        "./kafka*/bin/kafka-server-start.sh -daemon ./kafka*/config/server.properties > /dev/null 2>&1 &"
+#    )
+#    log.info("kafka broker started \n")
+    
+
+def stop_kafka_broker(path):
     """
     stop zookeeper and kafka broker
     """
     # stop kafka broker followed by zookeeper
     log.info(
-        "consumer started and sleep of 10 seconds before stopping the kafka broker and zookeeper"
+        "sleep of 10 seconds after stopping the kafka broker and zookeeper"
     )
     time.sleep(10)
-    cmd = "~/kafka/kafka*/bin/kafka-server-stop.sh && ~/kafka/kafka*/bin/zookeeper-server-stop.sh"
-    stop_kafka_server = os.system(cmd)
+    cmd = f"{path}bin/kafka-server-stop.sh"
+    stop_kafka = utils.exec_shell_cmd(cmd)
+    if stop_kafka is False:
+       log.info("kafka server not running")
+    else:
+        log.info("stopped kafka server")
+
+    cmd =f"{path}bin/zookeeper-server-stop.sh" #&& {path}/bin/zookeeper-server-stop.sh"
+    stop_zookeeper = utils.exec_shell_cmd(cmd) #subprocess.run(cmd) #,capture_output=True) #utils.exec_shell_cmd(cmd)  #os.system(cmd)
+    if stop_zookeeper is False:
+        log.info("zookeeper is not running")
+    else:
+        log.info("stopped zookeeper")
+    time.sleep(5)
+#    cmd =f"{path}/bin/zookeeper-server-stop.sh"
+#    stop_kafka_server = subprocess.run(cmd)
+#    time.sleep(5)
     log.info("kafka server and zookeeper server stopped")
 
 
@@ -222,7 +267,7 @@ def verify_event_record(event_type, bucket, event_record_path,ceph_version):
             if size == 0:
                 if "Post" in eventName:
                     log.info("Expected behavior")
-                else:
+                elif "nautilus" not in ceph_version:
                     raise EventRecordDataError("size: Object size is 0")
             else:
                 log.info(f"size: {size}")

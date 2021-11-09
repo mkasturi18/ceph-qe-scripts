@@ -61,6 +61,17 @@ def test_exec(config):
     ceph_conf = CephConfOp()
     rgw_service = RGWService()
 
+#    # start zookeeper and kafka broker
+#    path = '/home/cephuser/kafka*/'
+#    if config.test_ops.get("kafka_server") == 'start':
+#        log.info("start zookeeper & kafka server")
+#        start_broker = notification.start_kafka_broker(path)
+#
+#    # stop kafka and zookeeper services
+#    if config.test_ops.get("kafka_server") == 'stop':
+#        log.info("stop kafka and zookeeper service")
+#        stop_broker = notification.stop_kafka_broker(path)
+
     # create user
     all_users_info = s3lib.create_users(config.user_count)
     for each_user in all_users_info:
@@ -174,7 +185,7 @@ def test_exec(config):
                     log.info("copy object")
                     status = rgw_s3_client.copy_object(
                         Bucket=bucket_name_to_create,
-                        Key="copy_of_object",
+                        Key="copy_of_object"+s3_object_name,
                         CopySource={
                             "Bucket": bucket_name_to_create,
                             "Key": s3_object_name,
@@ -193,15 +204,22 @@ def test_exec(config):
                 else:
                     reusable.delete_objects(bucket)
 
-            # capture the events on the broker
-            log.info("start kafka server and capture events from consumer")
+#            # capture the events on the broker
+#            if config.test_ops.get("kafka_server") == 'start':
+#                log.info("start zookeeper & kafka server")
+#                start_broker = notification.start_kafka_broker()
+            
 
             # start kafka broker and consumer
             event_record_path = "/home/cephuser/event_record"
-            notification.start_kafka_broker_consumer(topic_name, event_record_path, ceph_version_name)
+            start_consumer = notification.start_kafka_broker_consumer(topic_name, event_record_path, ceph_version_name)
+            if start_consumer  is False:
+                raise TestExecError("Kafka consumer not running")
 
-            # stop kafka and zookeeper services
-            notification.stop_kafka_broker()
+#            # stop kafka and zookeeper services
+#            if config.test_ops.get("kafka_server") == 'stop':
+#               log.info("stop kafka and zookeeper service")
+#               notification.stop_kafka_broker()
 
             # verify all the attributes of the event record. if event not received abort testcase
             log.info("verify event record attributes")
