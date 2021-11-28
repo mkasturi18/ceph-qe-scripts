@@ -193,16 +193,16 @@ def test_exec(config):
                 else:
                     reusable.delete_objects(bucket)
             
-            # delete notification on a bucket
-            if config.test_ops.get("delete_bucket_notification",False):
-                log.info(f"deleting the notification on the bucket",bucketname)
-                notification.delete_bucket_notification(bucketname)
-
             # start kafka broker and consumer
             event_record_path = "/home/cephuser/event_record"
             start_consumer = notification.start_kafka_broker_consumer(topic_name, event_record_path, ceph_version_name)
             if start_consumer  is False:
                 raise TestExecError("Kafka consumer not running")
+
+            # delete notification on a bucket
+            if config.test_ops.get("delete_bucket_notification",False):
+                log.info(f"deleting the notification on the bucket",bucket_name_to_create)
+                notification.delete_bucket_notification(bucket_name_to_create)
 
             # verify all the attributes of the event record. if event not received abort testcase
             log.info("verify event record attributes")
