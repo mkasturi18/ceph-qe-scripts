@@ -159,19 +159,6 @@ def get_bucket_notification(rgw_s3_client, bucketname):
         f"bucket notification for bucket: {bucketname} is {get_bucket_notification_json}"
     )
 
-def delete_bucket_notification(rgw_s3_client, bucketname):
-    """
-    delete bucket notification for a given bucket
-    """
-    delete_bkt_notification = rgw_s3_client.delete_bucket_notification_configuration(
-        Bucket=bucketname
-    )
-    if delete_bkt_notification is False:
-        raise TestExecError(
-            f"failed to delete bucket notification for bucket"
-        )
-
-
 def verify_event_record(event_type, bucket, event_record_path,ceph_version):
     """
     verify event records

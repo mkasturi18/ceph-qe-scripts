@@ -199,11 +199,6 @@ def test_exec(config):
             if start_consumer  is False:
                 raise TestExecError("Kafka consumer not running")
 
-            # delete notification on a bucket
-            if config.test_ops.get("delete_bucket_notification",False):
-                log.info(f"deleting the notification on the bucket",{bucket_name_to_create})
-                notification.delete_bucket_notification(rgw_s3_client, bucket_name_to_create)
-
             # verify all the attributes of the event record. if event not received abort testcase
             log.info("verify event record attributes")
             verify = notification.verify_event_record(
