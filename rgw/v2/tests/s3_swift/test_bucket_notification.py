@@ -201,8 +201,8 @@ def test_exec(config):
 
             # delete notification on a bucket
             if config.test_ops.get("delete_bucket_notification",False):
-                log.info(f"deleting the notification on the bucket",bucket_name_to_create)
-                notification.delete_bucket_notification(bucket_name_to_create)
+                log.info(f"deleting the notification on the bucket",{bucket_name_to_create})
+                notification.delete_bucket_notification(rgw_s3_client, bucket_name_to_create)
 
             # verify all the attributes of the event record. if event not received abort testcase
             log.info("verify event record attributes")

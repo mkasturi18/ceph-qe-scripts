@@ -28,16 +28,16 @@ def start_kafka_broker_consumer(topic_name, event_record_path, ceph_version):
         t = utils.exec_shell_cmd(cmd) 
         print("path exists :",t)
 
-    path = '/home/cephuser/kafka*/'
+    path = "$KAFKA_HOME" #'/home/cephuser/kafka*/'
 
     #start zookeeper and kafka broker
     start_kafka_broker(path)
 
     # start kafka consumer
     if "nautilus" in ceph_version:
-        cmd = f"{path}/bin/kafka-console-consumer.sh --bootstrap-server kafka://localhost:9092 --from-beginning --topic {topic_name} --timeout-ms 20000 >> {event_record_path}"
+        cmd = f"{path}/bin/kafka-console-consumer.sh --bootstrap-server kafka://localhost:9092 --from-beginning --topic {topic_name} --timeout-ms 30000 >> {event_record_path}"
     else:
-        cmd = f"{path}/bin/kafka-console-consumer.sh --bootstrap-server kafka://localhost:9092 --from-beginning --topic {topic_name} --zookeeper localhost:2181 --timeout-ms 20000 >> {event_record_path}"
+        cmd = f"{path}/bin/kafka-console-consumer.sh --bootstrap-server kafka://localhost:9092 --from-beginning --topic {topic_name} --zookeeper localhost:2181 --timeout-ms 30000 >> {event_record_path}"
     start_consumer_kafka = utils.exec_shell_cmd(cmd) 
 
     #stop kafka broker
@@ -163,7 +163,7 @@ def delete_bucket_notification(rgw_s3_client, bucketname):
     """
     delete bucket notification for a given bucket
     """
-    delete_bkt_notification = rgw_s3_client.delete_bucket_notification_confiuration(
+    delete_bkt_notification = rgw_s3_client.delete_bucket_notification_configuration(
         Bucket=bucketname
     )
     if delete_bkt_notification is False:
