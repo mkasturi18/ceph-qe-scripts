@@ -31,7 +31,7 @@ def start_kafka_broker_consumer(topic_name, event_record_path, ceph_version):
     path = "$KAFKA_HOME" #'/home/cephuser/kafka*/'
 
     #start zookeeper and kafka broker
-    start_kafka_broker(path)
+    #start_kafka_broker(path)
 
     # start kafka consumer
     if "nautilus" in ceph_version:
@@ -41,7 +41,7 @@ def start_kafka_broker_consumer(topic_name, event_record_path, ceph_version):
     start_consumer_kafka = utils.exec_shell_cmd(cmd) 
 
     #stop kafka broker
-    stop_kafka_broker(path)
+    #stop_kafka_broker(path)
 
 def start_kafka_broker(path):
     """
