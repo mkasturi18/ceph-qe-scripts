@@ -29,15 +29,15 @@ def start_kafka_broker_consumer(topic_name, event_record_path, ceph_version):
         print("path exists :",t)
 
 #    path = utils.exec_shell_cmd("echo $KAFKA_HOME)" #'/home/cephuser/kafka*/'
-
+    KAFKA_HOME = '/home/cephuser/kafka/'
     #start zookeeper and kafka broker
     #start_kafka_broker(path)
 
     # start kafka consumer
     if "nautilus" in ceph_version:
-        cmd = f"$KAFKA_HOME/bin/kafka-console-consumer.sh --bootstrap-server kafka://localhost:9092 --from-beginning --topic {topic_name} --timeout-ms 30000 >> {event_record_path}"
+        cmd = f"{KAFKA_HOME}/bin/kafka-console-consumer.sh --bootstrap-server kafka://10.0.211.77:9092 --from-beginning --topic {topic_name} --timeout-ms 30000 >> {event_record_path}"
     else:
-        cmd = f"$KAFKA_HOME/bin/kafka-console-consumer.sh --bootstrap-server kafka://localhost:9092 --from-beginning --topic {topic_name} --zookeeper localhost:2181 --timeout-ms 30000 >> {event_record_path}"
+        cmd = f"{KAFKA_HOME}/bin/kafka-console-consumer.sh --bootstrap-server kafka://10.0.211.77:9092 --from-beginning --topic {topic_name} --zookeeper localhost:2181 --timeout-ms 30000 >> {event_record_path}"
     start_consumer_kafka = utils.exec_shell_cmd(cmd) 
 
     #stop kafka broker
