@@ -194,7 +194,7 @@ def test_exec(config):
                     reusable.delete_objects(bucket)
             
             # start kafka broker and consumer
-            event_record_path = "/home/cephuser/event_record"
+            event_record_path = "/home/cephuser/kafka/event_record"
             start_consumer = notification.start_kafka_broker_consumer(topic_name, event_record_path, ceph_version_name)
             if start_consumer  is False:
                 raise TestExecError("Kafka consumer not running")
