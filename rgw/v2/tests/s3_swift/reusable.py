@@ -985,7 +985,7 @@ def check_datalog_list():
         return False
 
 
-def check_datalog_marker():
+def check_datalog_marker(get=False):
     """
     check the datalog marker
     """
@@ -1009,6 +1009,10 @@ def check_datalog_marker():
         else:
             get_datalog_marker = datalog_status[i]["marker"]
             break
+
+    #return shard_id and datalog_marker
+    if get:
+        return i,get_datalog_marker
 
     if "1_" in get_datalog_marker:
         return "omap"
