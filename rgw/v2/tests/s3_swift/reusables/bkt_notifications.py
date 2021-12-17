@@ -24,27 +24,18 @@ def start_kafka_broker_consumer(topic_name, event_record_path, ceph_version):
             "stale event record file exists, deleting it before creating a new file."
         )
         cmd = f"rm -f {event_record_path}"
-        #os.system(cmd)
         t = utils.exec_shell_cmd(cmd) 
         print("path exists :",t)
-    #fetch the new event record from kafka broker 
 
-#    path = utils.exec_shell_cmd("echo $KAFKA_HOME)" #'/home/cephuser/kafka*/'
     KAFKA_HOME = '/home/cephuser/kafka/'
-    #start zookeeper and kafka broker
-    #start_kafka_broker(path)
 
     # start kafka consumer
-    consumer = f"sudo {KAFKA_HOME}/bin/kafka-console-consumer.sh --bootstrap-server kafka://localhost:9092 --from-beginning --topic {topic_name} --timeout-ms 30000"
     if "nautilus" in ceph_version:
-#        cmd = f"sudo {KAFKA_HOME}/bin/kafka-console-consumer.sh --bootstrap-server kafka://localhost:9092 --from-beginning --topic {topic_name} --timeout-ms 30000 >> {event_record_path}"
-        cmd =f"{consumer} >> {event_record_path}"
+        cmd = f"sudo {KAFKA_HOME}/bin/kafka-console-consumer.sh --bootstrap-server kafka://localhost:9092 --from-beginning --topic {topic_name} --timeout-ms 30000 >> {event_record_path}"
     else:
         cmd = f"sudo {KAFKA_HOME}/bin/kafka-console-consumer.sh --bootstrap-server kafka://localhost:9092 --from-beginning --topic {topic_name} --zookeeper localhost:2181 --timeout-ms 30000 >> {event_record_path}"
     start_consumer_kafka = utils.exec_shell_cmd(cmd) 
 
-    #stop kafka broker
-    #stop_kafka_broker(path)
 
 def start_kafka_broker(path):
     """
