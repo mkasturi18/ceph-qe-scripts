@@ -42,6 +42,17 @@ def exec_shell_cmd(cmd, debug_info=False):
     except Exception as e:
         log.error("cmd execution failed")
         log.error(e)
+        # dump the crash log information on to the console, if any
+        ceph_version_id, ceph_version_name = get_ceph_version()
+        if ceph_version_name in ["luminous", "nautilus"]:
+            crash_path = "sudo ls -t /var/lib/ceph/crash/*/log | head -1"
+        else:
+            crash_path = "sudo ls -t /var/lib/ceph/*/crash/*/log | head -1"
+        out = exec_shell_cmd(crash_path)
+        crash_file = out.rstrip("\n")
+        if os.path.isfile(crash_file):
+            cmd = f"cat {crash_file}"
+            exec_shell_cmd(cmd)
         return False
 
 
