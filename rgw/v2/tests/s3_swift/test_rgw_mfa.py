@@ -141,27 +141,9 @@ def test_exec(config):
                 if config.test_ops.get("enable_mfa_version", False):
                     log.info("enable bucket versioning and MFA deletes")
 
-                    token, status = reusable.enable_mfa_versioning(
+                    reusable.enable_mfa_versioning(
                         bucket, rgw_conn, SEED, serial, each_user, write_bucket_io_info
                     )
-                    if status is False:
-                        log.info("trying again! AccessDenied could be a timing issue!")
-                        new_token = reusable.generate_totp(SEED)
-                        if token == new_token:
-                            log.info("sleep of 30secs to generate another TOTP token")
-                            time.sleep(30)
-                        status = reusable.enable_mfa_versioning(
-                            bucket,
-                            rgw_conn,
-                            SEED,
-                            serial,
-                            each_user,
-                            write_bucket_io_info,
-                        )
-                        if status is False:
-                            raise MFAVersionError(
-                                "Failed to enable MFA and versioning on the bucket!"
-                            )
 
                 if config.test_ops["create_object"] is True:
                     # uploading data

@@ -447,7 +447,7 @@ def generate_totp(seed):
 
 
 def enable_mfa_versioning(
-    bucket, rgw_conn, SEED, serial, user_info, write_bucket_io_info
+    bucket, rgw_conn, SEED, serial, user_info, write_bucket_io_info, retry=10, delay=30
 ):
     log.info("bucket MFA and versioning test on bucket: %s" % bucket.name)
     bucket_versioning = s3lib.resource_op(
@@ -460,25 +460,32 @@ def enable_mfa_versioning(
     if version_status is None:
         log.info("bucket mfa and versioning still not enabled")
 
-    # generate MFA token to authenticate
-    token = generate_totp(SEED)
-    mfa_token = serial + " " + token
+    for retry_count in range(retry):
+        log.info(f"sleep of {delay}secs to generate another TOTP token")
+        time.sleep(delay)
+        # generate MFA token to authenticate
+        token = generate_totp(SEED)
+        mfa_token = serial + " " + token
 
-    # put mfa and bucket versioning
-    mfa_version_put = s3lib.resource_op(
-        {
-            "obj": bucket_versioning,
-            "resource": "put",
-            "kwargs": dict(
-                MFA=(mfa_token),
-                VersioningConfiguration={"MFADelete": "Enabled", "Status": "Enabled"},
-                ExpectedBucketOwner=user_info["user_id"],
-            ),
-        }
-    )
-
-    if mfa_version_put is False:
-        return token, mfa_version_put
+        # put mfa and bucket versioning
+        mfa_version_put = s3lib.resource_op(
+            {
+                "obj": bucket_versioning,
+                "resource": "put",
+                "kwargs": dict(
+                    MFA=(mfa_token),
+                    VersioningConfiguration={
+                        "MFADelete": "Enabled",
+                        "Status": "Enabled",
+                    },
+                    ExpectedBucketOwner=user_info["user_id"],
+                ),
+            }
+        )
+        if mfa_version_put is False:
+            log.info("trying again! AccessDenied could be a timing issue!")
+        else:
+            break
 
     response = HttpResponseParser(mfa_version_put)
     if response.status_code == 200:
