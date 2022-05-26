@@ -28,7 +28,7 @@ class Auth(object):
         self.access_key = user_info["access_key"]
         self.secret_key = user_info["secret_key"]
         self.hostname = socket.gethostname()
-        self.ip = socket.gethostbyname(self.hostname)
+        self.ip = "10.0.208.38"#socket.gethostbyname(self.hostname)
         self.ssl = extra_kwargs.get("ssl", False)
         self.port = utils.get_radosgw_port_no()
         self.endpoint_url = (
