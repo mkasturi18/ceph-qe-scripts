@@ -163,6 +163,12 @@ def test_exec(config):
         else:
             raise TestExecError("Expected number of shards not created")
 
+    # Verify num objects in bucket stats
+    reusable.check_objects_bucket(bucket.name, config.objects_count)
+
+    # check bucket stats on all buckets
+    reusable.get_bucket_stats_all()
+
     if config.test_ops.get("delete_bucket_object", False):
         if config.test_ops.get("enable_version", False):
             for name, path in objects_created_list:

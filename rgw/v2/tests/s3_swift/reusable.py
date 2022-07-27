@@ -597,11 +597,14 @@ def rename_bucket(old_bucket, new_bucket, userid, tenant=False):
     """"""
     validate = "radosgw-admin bucket list"
     if tenant:
-        cmd = "radosgw-admin bucket link --bucket=%s --bucket-new-name=%s --uid=%s --tenant=%s" % (
-            str(tenant) + "/" + old_bucket,
-            str(tenant) + "/" + new_bucket,
-            userid,
-            tenant,
+        cmd = (
+            "radosgw-admin bucket link --bucket=%s --bucket-new-name=%s --uid=%s --tenant=%s"
+            % (
+                str(tenant) + "/" + old_bucket,
+                str(tenant) + "/" + new_bucket,
+                userid,
+                tenant,
+            )
         )
     else:
         cmd = "radosgw-admin bucket link --bucket=%s --bucket-new-name=%s --uid=%s" % (
@@ -1075,3 +1078,32 @@ def put_bucket_lifecycle(bucket, rgw_conn, rgw_conn2, life_cycle_rule):
         raise TestExecError("bucket life cycle retrieved")
     lc_data = json.loads(utils.exec_shell_cmd("radosgw-admin lc list"))
     log.info(f"lc data is {lc_data}")
+
+
+def check_objects_bucket(bucket_name, objects_put):
+    """
+    Function to check the objects created and object put match
+    """
+    bucket_stats = utils.exec_shell_cmd(
+        f"radosgw-admin bucket stats --bucket {bucket_name}"
+    )
+    data = json.loads(bucket_stats)
+    num_objects = data["usage"]["rgw.main"]["num_objects"]
+    if int(num_objects) != int(objects_put):
+        raise TestExecError("mismatch in number of objects put vs in bucket")
+    else:
+        log.info(f"objects put vs in bucket are same: {num_objects}")
+
+
+def get_bucket_stats_all():
+    """
+    gets the bucket stats of all the buckets in the cluster
+    """
+    import subprocess
+
+    log.info("get bucket stats of all the buckets")
+    cmd = "radosgw-admin bucket stats| egrep -i 'error|ret=-5'"
+    status, output = subprocess.getstatusoutput(cmd)
+    log.info(status)
+    if status:
+        raise TestExecError(f"bucket stats on all buckets failed! {output}")

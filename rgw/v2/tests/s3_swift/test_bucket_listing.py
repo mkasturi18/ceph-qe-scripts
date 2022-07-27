@@ -26,6 +26,7 @@ import json
 import logging
 import time
 import traceback
+import subprocess
 
 import v2.lib.manage_data as manage_data
 import v2.lib.resource_op as s3lib
@@ -276,10 +277,10 @@ def test_exec(config):
             log.info(
                 "Executing the command radosgw-admin bucket radoslist on all buckets"
             )
-            cmd = "radosgw-admin bucket radoslist | grep ERROR"
-            radoslist_all_error = utils.exec_shell_cmd(cmd)
-            if radoslist_all_error:
-                raise TestExecError("ERROR in radoslist command")
+            cmd = "radosgw-admin bucket radoslist | grep -i ERROR"
+            status, output = subprocess.getstatusoutput(cmd)
+            if status:
+                raise TestExecError(f"ERROR in radoslist command!{output}")
 
         if config.test_ops.get("delete_bucket_object", False):
             if config.test_ops.get("enable_version", False):
@@ -291,6 +292,9 @@ def test_exec(config):
                 reusable.delete_objects(bucket)
                 time.sleep(30)
                 reusable.delete_bucket(bucket)
+
+    # check bucket stats on all buckets
+    reusable.get_bucket_stats_all()
 
     # check sync status if a multisite cluster
     reusable.check_sync_status()
